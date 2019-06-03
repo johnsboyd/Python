@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+      <li class="nav-item">
+        <a class="nav-link" onclick="history.go(-1)" href="#">Back</a>
+      </li>
+{% endblock %}
+
+{% block body %}
+  <div class="jumbotron jumbotron-fluid">
+    <pre>
+      {{ lyrics }}
+    </pre>
+  </div>
+{% endblock %}
