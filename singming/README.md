@@ -13,18 +13,18 @@ indexes.
 
 Installation:
 
-*$ sudo apt-get install redis
-*$ sudo apt-get install build-essential
-*$ git clone https://github.com/RedisJSON/RedisJSON.git
-*$ cd RedisJSON
-*$ make
-*$ cd src
-*$ sudo cp rejson.so /var/lib/redis/
-*$ echo "loadmodule /var/lib/redis/rejson.so" >> /etc/redis/redis.conf
-*$ service redis-server restart
-*
-*$ git clone https://github.com/johnsboyd/Python.git
-*$ cd Python/singming
-*(create python3 VM with virtualenv or pipenv)
-*$ source .venv/bin/activate
-*$ python app.py
+  $ sudo apt-get install redis
+  $ sudo apt-get install build-essential
+  $ git clone https://github.com/RedisJSON/RedisJSON.git
+  $ cd RedisJSON
+  $ make
+  $ cd src
+  $ sudo cp rejson.so /var/lib/redis/
+  $ echo "loadmodule /var/lib/redis/rejson.so" >> /etc/redis/redis.conf
+  $ service redis-server restart
+  
+  $ git clone https://github.com/johnsboyd/Python.git
+  $ cd Python/singming
+  (create python3 VM with virtualenv or pipenv)
+  $ source .venv/bin/activate
+  $ python app.py
