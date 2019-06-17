@@ -12,7 +12,7 @@ indexes.
 
 
 Installation:
-
+```
   $ sudo apt-get install redis
   $ sudo apt-get install build-essential
   $ git clone https://github.com/RedisJSON/RedisJSON.git
@@ -28,3 +28,4 @@ Installation:
   (create python3 VM with virtualenv or pipenv)
   $ source .venv/bin/activate
   $ python app.py
+```
