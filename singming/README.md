@@ -25,7 +25,7 @@ Installation:
   
   $ git clone https://github.com/johnsboyd/Python.git
   $ cd Python/singming
-  (create python3 VM with virtualenv or pipenv)
+  $ pipenv install # (or use virtualenv and pip)
   $ source .venv/bin/activate
   $ python app.py
 ```
