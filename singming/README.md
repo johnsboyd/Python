@@ -12,7 +12,7 @@ indexes.
 
 Using the application:
 1) using Search form, type in the song title and artist name and hit return (lyrics should appear on screen)
-2) click on 'Add-Song' to add your song to the list of indexed songs
+2) click the 'Add-Song' to add your song to the list of indexed songs
 3) repeat above steps to add in several songs
 4) at 'Select Songs' screen check several radio buttons to select songs to be merged
 5) click 'mingle-it' to see Markov (mashup) results
