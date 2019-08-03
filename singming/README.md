@@ -10,6 +10,13 @@ The application uses redis with the RedisJSON module.  The python web scraping t
 displayed but the original lyrics are not really stored in the database intact, they are only stored as markov 
 indexes. 
 
+Using the application:
+1) using Search form, type in the song title and artist name (lyrics should appear on screen)
+2) click on the 'Add-Song' to add to the Markov list of indexed songs
+3) repeat above steps to add in several songs
+4) at 'Select Songs' screen check several radio buttons to merge song indexes
+5) click 'mingle-it' to see Markov (mashup) results
+
 
 Installation:
 ```
