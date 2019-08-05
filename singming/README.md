@@ -27,7 +27,7 @@ Installation:
   $ make
   $ cd src
   $ sudo cp rejson.so /var/lib/redis/
-  $ echo "loadmodule /var/lib/redis/rejson.so" >> /etc/redis/redis.conf
+  $ sudo echo "loadmodule /var/lib/redis/rejson.so" >> /etc/redis/redis.conf
   $ service redis-server restart
   
   $ git clone https://github.com/johnsboyd/Python.git
