@@ -24,7 +24,7 @@ Installation:
   
   $ git clone https://github.com/johnsboyd/Python.git
   $ cd Python/singming
-  $ pipenv install # (or use virtualenv and pip)
+  $ PIPENV_VENV_IN_PROJECT=1 pipenv install # (or use virtualenv and pip)
   $ source .venv/bin/activate
   $ python app.py
 ```
