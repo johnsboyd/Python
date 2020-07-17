@@ -5,14 +5,6 @@ import subprocess
 import time
 
 # GPIO define
-#RST_PIN        = 25
-#CS_PIN         = 8
-#DC_PIN         = 24
-#RST = 27
-#DC = 25
-#BL = 24
-#bus = 0 
-#device = 0 
 
 buttons = {'KEY_UP_PIN': 6, 'KEY_DOWN_PIN': 19, 'KEY_LEFT_PIN': 5,
            'KEY_RIGHT_PIN': 26, 'KEY_PRESS_PIN': 13, 'KEY1_PIN': 21,
@@ -22,11 +14,12 @@ buttons = {'KEY_UP_PIN': 6, 'KEY_DOWN_PIN': 19, 'KEY_LEFT_PIN': 5,
 # for P4:
 # sudo vi /boot/config.txt
 # gpio=6,19,5,26,13,21,20,16=pu
+
 GPIO.setmode(GPIO.BCM) 
 for key in buttons:
     GPIO.setup(buttons[key], GPIO.IN, pull_up_down=GPIO.PUD_UP) # Input with pull-up
 
-
+# midi device setup
 if not os.path.islink('/dev/midi1'):
     os.symlink('/dev/snd/midiC1D0','/dev/midi1')
 if not os.path.islink('/dev/midi2'):
