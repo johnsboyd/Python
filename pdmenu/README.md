@@ -10,13 +10,14 @@ TBD - rough outline
 2) install xrdp, pure data, openstep (minimal X)
 3) install Pi Access Point WIFI hotspot
 4) configure frame buffer console display for LED
-5) install this appliance code
+5) configure buttons mapped to ascii keyboard functionality
+5) install this python appliance code
 ```
 
 Using the application:
 ```
-1) Navigate presets in the main menu using the UP and DOWN controls of the 
-   joystick from the Waveshare LED pi hat
-2) Load preset with the KEY1 button which runs a subprocess of Pure Data
-3) Halt the raspberry pi using the KEY3 button from the main menu
+1) Navigate all functions using the UP and DOWN controls on left
+   and Enter (top) with Esc (bottom) on the right.
+2) Load menu will display all presets which can be loaded using above controls
+3) Info, Halt, and Exit functions are also available from the main menu 
 ```
