@@ -52,24 +52,30 @@ class proc_mgr(object):
 			for idx in range(len(presets)):
 				filehandle.write('{} {}\n'.format(idx,presets[idx]))
 		diamsg = 'dialog --nook --cancel-label "esc" --stdout --no-shadow --menu "select program:" 12 24 {} --file plist'.format(idx)
-		selection = int(subprocess.check_output(diamsg, shell = True ).decode("utf-8"))
-		if presets[selection] != self.last:
-			if self.pproc:
-				self.pproc.terminate()
-				self.pproc.wait()
-				self.pproc = None
-			with open("pdout.log","wb") as err:
-				self.pproc = subprocess.Popen(['puredata','-nogui','-midiindev',self.midiin,'-midioutdev',self.midiout,'-open',presets[selection]],stderr=err,shell=False)
-				self.last = presets[selection]
-		diamsg = 'dialog --title {} --exit-label "ok" --no-shadow --tailbox pdout.log 12 24'.format(presets[selection])
-		subprocess.run(diamsg, shell = True )
+		try:
+			selection = int(subprocess.check_output(diamsg, shell = True ).decode("utf-8"))
+		except subprocess.CalledProcessError as e:
+			selection = -1 # escape chosen
+		if selection >= 0:
+			if presets[selection] != self.last:
+				if self.pproc:
+					self.pproc.terminate()
+					self.pproc.wait()
+					self.pproc = None
+				with open("pdout.log","wb") as err:
+					self.pproc = subprocess.Popen(['puredata','-nogui','-midiindev',self.midiin,'-midioutdev',self.midiout,'-open',presets[selection]],stderr=err,shell=False)
+					self.last = presets[selection]
+			diamsg = 'dialog --title {} --exit-label "ok" --no-shadow --tailbox pdout.log 12 24'.format(presets[selection])
+			subprocess.run(diamsg, shell = True )
 		os.remove("plist")
 		self.main_menu()
 
 	def show_info(self):
 		cmd = 'hostname -I | awk \'{print "IP:",$1}\' > info.txt'
 		subprocess.run(cmd, shell=True)
-		cmd = 'uptime | awk \'{print "Load:", $9,$10,$11}\' | tr -d \',\' >> info.txt'
+		cmd = 'echo -n "Load: " >> info.txt'
+		subprocess.run(cmd, shell=True)
+		cmd = 'uptime | egrep -o [0-9]+[.]+[0-9]+[,]+[\' \']+[0-9]+[.]+[0-9]+[,]+[\' \']+[0-9]+[.]+[0-9]+ | tr -d \',\' >> info.txt'
 		subprocess.run(cmd, shell=True)
 		cmd = r'''free -m | grep Mem: | awk '{printf "Mem: %s/%s MB\n",$3,$2}' >> info.txt'''
 		subprocess.run(cmd, shell=True)
