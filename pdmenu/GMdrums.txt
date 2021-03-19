@@ -1,0 +1,41 @@
+28 slap
+35 bass drum muted
+36 bass drum hi
+37 side stick
+38 acoustic snare
+39 handclap
+40 electric snare
+42 closed hi hat
+44 pedal hi hat
+46 open hi hat
+49 crash cymbal 1
+51 ride cymbal 1
+52 chinese cymbal
+53 ride bell
+54 tambourine
+55 splash cymbal
+56 cowbell
+57 crash cymbal 2
+59 ride cymbal 2
+60 bongo hi
+61 bongo lo
+62 mute hi conga
+63 open hi conga
+64 low conga
+65 lo timbale
+66 hi timbale
+67 apogo hi
+68 apogo lo
+69 cabasa
+70 maracas
+73 short guiro
+74 long guiro
+75 claves
+76 hi wood block
+77 lo wood block
+78 cuica mute
+79 cuica open
+80 mute triangle
+81 open triangle
+82 shaker
+85 castanets

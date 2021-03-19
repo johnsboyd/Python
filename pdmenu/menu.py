@@ -1,201 +1,121 @@
-import curses
+#!/usr/bin/env python3
+
 import os
-import RPi.GPIO as GPIO
 import subprocess
+import sys
 import time
 
-# GPIO define
+class proc_mgr(object):
+	def __init__(self):
+		self.pproc = None
+		self.midiin = None
+		self.midiout = None
+		self.last = None
 
-buttons = {'KEY_UP_PIN': 6, 'KEY_DOWN_PIN': 19, 'KEY_LEFT_PIN': 5,
-           'KEY_RIGHT_PIN': 26, 'KEY_PRESS_PIN': 13, 'KEY1_PIN': 21,
-           'KEY2_PIN': 20, 'KEY3_PIN': 16 }
+	def setup(self):
+		cmd = 'echo -ne "\x1b[?25l"' # turn cursor off
+		subprocess.run(cmd, shell=True)
+		no=1
+		cmd = "ls -1 /dev/snd/midi*"
+		mididev = subprocess.check_output(cmd, shell = True ).decode("utf-8").split()
+		# symlink all midi devices
+		for devname in mididev:
+			if not os.path.islink('/dev/midi' + str(no)):
+				os.symlink(devname,'/dev/midi' + str(no))
+			no += 1
+		# set midi options
+		if no == 2:
+			self.midiin = '1'
+			self.midiout = '1'
+		elif no == 3:
+			self.midiin = '1,2'
+			self.midiout = '1,2'
 
-#init GPIO
-# for P4:
-# sudo vi /boot/config.txt
-# gpio=6,19,5,26,13,21,20,16=pu
+	def main_menu(self):
+		diamsg = 'dialog --nook --no-cancel --stdout --no-shadow --menu "select function:" 12 24 4 0 Load 1 Info 2 Halt 3 Exit'
+		selection = subprocess.check_output(diamsg, shell = True ).decode("utf-8")
+		if selection == '0':
+			print()
+			self.load_prog()
+		elif selection == '1':
+			self.show_info()
+		elif selection == '2':
+			self.turn_off()
+		elif selection == '3':
+			self.exit_out()
+		else:
+			self.exit_out()
 
-GPIO.setmode(GPIO.BCM) 
-for key in buttons:
-    GPIO.setup(buttons[key], GPIO.IN, pull_up_down=GPIO.PUD_UP) # Input with pull-up
+	def load_prog(self):
+		presets = sorted([i for i in os.listdir('./') if i.endswith('.pd')])
+		with open('plist', 'w') as filehandle:
+			for idx in range(len(presets)):
+				filehandle.write('{} {}\n'.format(idx,presets[idx]))
+		diamsg = 'dialog --nook --cancel-label "esc" --stdout --no-shadow --menu "select program:" 12 24 {} --file plist'.format(idx)
+		selection = int(subprocess.check_output(diamsg, shell = True ).decode("utf-8"))
+		if presets[selection] != self.last:
+			if self.pproc:
+				self.pproc.terminate()
+				self.pproc.wait()
+				self.pproc = None
+			with open("pdout.log","wb") as err:
+				self.pproc = subprocess.Popen(['puredata','-nogui','-midiindev',self.midiin,'-midioutdev',self.midiout,'-open',presets[selection]],stderr=err,shell=False)
+				self.last = presets[selection]
+		diamsg = 'dialog --title {} --exit-label "ok" --no-shadow --tailbox pdout.log 12 24'.format(presets[selection])
+		subprocess.run(diamsg, shell = True )
+		os.remove("plist")
+		self.main_menu()
 
-# midi device setup
-if not os.path.islink('/dev/midi1'):
-    os.symlink('/dev/snd/midiC1D0','/dev/midi1')
-if not os.path.islink('/dev/midi2'):
-    os.symlink('/dev/snd/midiC2D0','/dev/midi2')
+	def show_info(self):
+		cmd = 'hostname -I | awk \'{print "IP:",$1}\' > info.txt'
+		subprocess.run(cmd, shell=True)
+		cmd = 'uptime | awk \'{print "Load:", $9,$10,$11}\' | tr -d \',\' >> info.txt'
+		subprocess.run(cmd, shell=True)
+		cmd = r'''free -m | grep Mem: | awk '{printf "Mem: %s/%s MB\n",$3,$2}' >> info.txt'''
+		subprocess.run(cmd, shell=True)
+		cmd = r'''df -h | grep /dev/root | awk '{printf "Disk: %s/%s\n",$3,$2}' >> info.txt'''
+		subprocess.run(cmd, shell=True)
+		diamsg = 'dialog --title " Info" --exit-label "ok" --no-shadow --textbox info.txt 12 24'
+		subprocess.run(diamsg, shell = True )
+		os.remove("info.txt")
+		self.main_menu()
+
+	def exit_out(self):
+		if self.pproc:
+			self.pproc.terminate()
+			self.pproc.wait()
+			self.pproc = None
+		if os.path.exists("pdout.log"):
+			os.remove("pdout.log")
+		if os.path.exists("plist"):
+			os.remove("plist")
+
+	def turn_off(self):
+		diamsg = 'dialog --title "Shutdown" --ok-label yes --help-button --help-label esc --no-shadow --msgbox "Are you sure?" 12 24'
+		selection = subprocess.call(diamsg, shell = True )
+		if selection == 0:
+			self.exit_out()
+			diamsg = 'dialog --title "Message" --no-shadow --infobox "Unplug the pi after the green LED goes out" 12 24'
+			subprocess.run(diamsg, shell = True )
+			time.sleep( 3 )
+			cmd = "halt"
+			subprocess.run(cmd, shell = True )			
+		else:
+			self.main_menu()
+	
+	def block_cursor(self):
+		cmd = 'echo -ne "\x1b[?25h"' # turn cursor on
+		subprocess.run(cmd, shell = True)
+				
+
+def main():
+	pm = proc_mgr()
+	pm.setup()
+	pm.main_menu()
+	pm.block_cursor()
+	exit
+
+if __name__ == '__main__':
+    main()
 
 
-###### Begin state machine code ######
-class ScreenState(object):
-    
-    name = "state"
-    allowed = []
-    
-    def switch(self, state):
-        if state.name in self.allowed:
-            #print('Current:',self,' => switching to new state [',state.name,']')
-            self.__class__ = state
-            return True
-        else:
-            #print('Current:',self,' => switching to new state [',state.name,'] not possible.')
-            return False
-
-    def __str__(self):
-        return self.name
-    
-class Menu(ScreenState):
-    name = "menu"
-    allowed = ['up','down','load','halt']
-
-class Up(ScreenState):
-    name = "up"
-    allowed = ['up','down','load','halt','menu']
-
-class Down(ScreenState):
-    name = "down"
-    allowed = ['up','down','load','halt','menu']
-
-class Load(ScreenState):
-    name = "load"
-    allowed = ['menu','info','clear']
-
-class Clear(ScreenState):
-    name = "clear"
-    allowed = ['menu','clear','info']
-
-class Info(ScreenState):
-    name = "info"
-    allowed = ['load']
-
-class Halt(ScreenState):
-    name = "halt"
-    allowed = ['menu','off']
-
-class Off(ScreenState):
-    name = "off"
-    allowed = []
-
-class On(ScreenState):
-    name = "on"
-    allowed = ['menu']
-
-class Screen(object):
-    def __init__(self):
-        # State of the screen - default is menu.
-        self.state = On()
-
-    def change(self, state):
-        """ Change state """
-        status = self.state.switch(state)
-        return status
-
-    def current(self):
-        return self.state
-
-###### End state machine code ######
-
-def rot(presets,num):
-    if num > 0:
-        for i in range(0,num):
-            p = presets.pop(0)
-            presets.append(p)
-    elif num < 0:
-        for i in (range(0,num,-1)):
-            p = presets.pop()
-            presets.insert(0,p)
-
-def menu(stdscr,scrn,presets):
-    if scrn.change(Menu):
-        stdscr.clear()
-        h, w = stdscr.getmaxyx()
-        x = 0
-        y = 0
-        for idx in range(0,12):
-            if idx == 6:
-                stdscr.addstr(y, x, presets[idx][:-3],  curses.A_UNDERLINE | curses.A_BOLD )
-            else:
-                #stdscr.attron(curses.color_pair(2))
-                stdscr.addstr(y, x, presets[idx][:-3], curses.color_pair(1) )
-            y += 1
-
-        stdscr.addstr(1,w-4, "LOAD", curses.color_pair(2))
-        stdscr.addstr(h-2,w-4, "HALT", curses.color_pair(2))
-        stdscr.refresh()
-
-def up(stdscr,scrn,presets):
-    if scrn.change(Up):
-        rot(presets,-1)
-        menu(stdscr,scrn,presets)
-
-def down(stdscr,scrn,presets):
-    if scrn.change(Down):
-        rot(presets,1)
-        menu(stdscr,scrn,presets)
-
-def key1(stdscr,scrn,presets):
-    prev = str(scrn.current())
-    if prev == 'load' or prev == 'clear' or prev == 'halt':
-        menu(stdscr,scrn, presets)
-    elif prev == 'menu' or prev == 'up' or prev =='down':
-        if scrn.change(Load):
-            prev = str(scrn.current())
-            stdscr.clear()
-            h, w = stdscr.getmaxyx()
-            stdscr.addstr(0,1, presets[6][:-3], curses.A_UNDERLINE | curses.A_BOLD )
-            stdscr.addstr(1,w-4, "MENU", curses.color_pair(2))
-            stdscr.addstr(h-2,w-4, "INFO", curses.color_pair(2))
-            stdscr.refresh()
-            subprocess.run(['pkill', '-u', 'root', 'puredata'])
-            pdproc = subprocess.Popen(['puredata', '-nogui', '-midiindev', '1', '-midioutdev', '1', '-open', presets[6] ], stdout=subprocess.PIPE, shell=False)
-            #pdproc = subprocess.Popen(['puredata', '-nogui', '-midiindev', '1,2', '-midioutdev', '1,2', '-open', presets[6] ], stdout=subprocess.PIPE, shell=False)
-            # puredata -nogui -midiindev 1,2 -midioutdev 1,2 -open 
-    
-def key3(stdscr,scrn,presets):
-    prev = str(scrn.current())
-    if prev == 'halt':
-        if scrn.change(Off):
-            stdscr.clear()
-            h, w = stdscr.getmaxyx()
-            stdscr.addstr(h//2, 1, "Let green LED turn off", curses.A_UNDERLINE | curses.A_BOLD )
-            stdscr.refresh()
-            time.sleep( 2 )
-            subprocess.run(['pkill', '-u', 'root', 'puredata'])
-            cmd = "halt"
-            out = subprocess.check_output(cmd, shell = True )
-    elif prev == 'menu' or prev == 'up' or prev =='down':
-        if scrn.change(Halt):
-            stdscr.clear()
-            h, w = stdscr.getmaxyx()
-            cmd = "hostname -I | cut -d' ' -f 1"
-            ip = subprocess.check_output(cmd, shell = True ).decode("utf-8")
-            stdscr.addstr(1,w-4, "MENU", curses.color_pair(2))
-            stdscr.addstr(h//2-1, 1, "Shutdown. Are you sure?", curses.A_UNDERLINE | curses.A_BOLD )
-            stdscr.addstr(h-4,1, "IP: " + ip, curses.color_pair(1))
-            stdscr.addstr(h-2,w-3, "YES", curses.color_pair(2))
-            stdscr.refresh()
-
-def main(stdscr):
-    presets = sorted([i for i in os.listdir('./') if i.endswith('.pd')])
-    curses.curs_set(0)
-    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
-    curses.init_pair(2, curses.COLOR_CYAN, curses.COLOR_BLACK)
-    rot(presets,-6) 
-    scrn = Screen()
-    menu(stdscr,scrn,presets)
-
-    # button interrupts section
-    GPIO.add_event_detect(buttons['KEY_UP_PIN'], GPIO.FALLING,callback=lambda x: up(stdscr,scrn,presets), bouncetime=200)
-    GPIO.add_event_detect(buttons['KEY_DOWN_PIN'], GPIO.FALLING,callback=lambda x: down(stdscr,scrn,presets), bouncetime=200)
-    GPIO.add_event_detect(buttons['KEY1_PIN'], GPIO.FALLING,callback=lambda x: key1(stdscr,scrn,presets), bouncetime=200)
-    GPIO.add_event_detect(buttons['KEY3_PIN'], GPIO.FALLING,callback=lambda x: key3(stdscr,scrn,presets), bouncetime=200)
-
-    try:  
-        GPIO.wait_for_edge(buttons['KEY_LEFT_PIN'], GPIO.FALLING)  
-  
-    except KeyboardInterrupt:  
-        GPIO.cleanup()       # clean up GPIO on CTRL+C exit  
-    GPIO.cleanup()       # clean up GPIO on normal exit  
-    subprocess.run(['pkill', '-u', 'root', 'puredata'])
-
-curses.wrapper(main)

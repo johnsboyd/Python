@@ -1,4 +1,4 @@
-#N canvas 821 248 721 395 10;
+#N canvas 818 246 721 395 10;
 #X obj 166 195 pack f f;
 #X obj 255 195 pack f f;
 #X floatatom 282 52 5 0 0 0 - - -, f 5;
@@ -27,13 +27,14 @@
 #X text 558 277 <-- MIDI note name;
 #X msg 484 256 symbol \$1\$2;
 #X obj 206 128 moses 65;
-#X obj 434 279 print;
+#X obj 390 345 print;
 #X obj 59 56 vsl 50 200 0 127 0 0 empty empty empty 0 -9 0 10 -262144
--1 -1 10969 1;
+-1 -1 8700 1;
 #X obj 206 81 notein 17;
 #X obj 166 237 noteout 17;
 #X obj 255 237 noteout 18;
 #X obj 17 16 ctlin 0 17;
+#X obj 391 308 makefilename note:%s;
 #X connect 0 0 31 0;
 #X connect 1 0 32 0;
 #X connect 2 0 24 0;
@@ -73,7 +74,7 @@
 #X connect 24 0 14 0;
 #X connect 24 1 17 0;
 #X connect 26 0 11 0;
-#X connect 26 0 28 0;
+#X connect 26 0 34 0;
 #X connect 27 0 0 0;
 #X connect 27 1 1 0;
 #X connect 29 0 3 0;
@@ -81,3 +82,4 @@
 #X connect 30 1 1 1;
 #X connect 30 1 0 1;
 #X connect 33 0 29 0;
+#X connect 34 0 28 0;
