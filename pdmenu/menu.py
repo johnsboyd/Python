@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import shlex
 import subprocess
 import sys
 import time
@@ -8,34 +9,36 @@ import time
 class proc_mgr(object):
 	def __init__(self):
 		self.pproc = None
-		self.midiin = None
-		self.midiout = None
+		self.midiin = ''
+		self.midiout = ''
 		self.last = None
 
 	def setup(self):
 		cmd = 'echo -ne "\x1b[?25l"' # turn cursor off
-		subprocess.run(cmd, shell=True)
-		no=1
-		cmd = "ls -1 /dev/snd/midi*"
-		mididev = subprocess.check_output(cmd, shell = True ).decode("utf-8").split()
+		subprocess.run(shlex.split(cmd), shell = False)
+		mididev = sorted([i for i in os.listdir('/dev/snd/') if i.startswith('midi')])
 		# symlink all midi devices
+		no=1
 		for devname in mididev:
 			if not os.path.islink('/dev/midi' + str(no)):
-				os.symlink(devname,'/dev/midi' + str(no))
+				os.symlink('/dev/snd/' + devname,'/dev/midi' + str(no))
 			no += 1
 		# set midi options
 		if no == 2:
-			self.midiin = '1'
-			self.midiout = '1'
+			self.midiin = '-midiindev 1'
+			self.midiout = '-midioutdev 1'
 		elif no == 3:
-			self.midiin = '1,2'
-			self.midiout = '1,2'
+			self.midiin = '-midiindev 1,2'
+			self.midiout = '-midioutdev 1,2'
+		else:
+			self.midiin = ''
+			self.midiout = ''
+
 
 	def main_menu(self):
 		diamsg = 'dialog --nook --no-cancel --stdout --no-shadow --menu "select function:" 12 24 4 0 Load 1 Info 2 Halt 3 Exit'
-		selection = subprocess.check_output(diamsg, shell = True ).decode("utf-8")
+		selection = subprocess.check_output(shlex.split(diamsg), shell = False ).decode("utf-8")
 		if selection == '0':
-			print()
 			self.load_prog()
 		elif selection == '1':
 			self.show_info()
@@ -53,7 +56,7 @@ class proc_mgr(object):
 				filehandle.write('{} {}\n'.format(idx,presets[idx]))
 		diamsg = 'dialog --nook --cancel-label "esc" --stdout --no-shadow --menu "select program:" 12 24 {} --file plist'.format(idx)
 		try:
-			selection = int(subprocess.check_output(diamsg, shell = True ).decode("utf-8"))
+			selection = int(subprocess.check_output(shlex.split(diamsg), shell = False ).decode("utf-8"))
 		except subprocess.CalledProcessError as e:
 			selection = -1 # escape chosen
 		if selection >= 0:
@@ -63,10 +66,11 @@ class proc_mgr(object):
 					self.pproc.wait()
 					self.pproc = None
 				with open("pdout.log","wb") as err:
-					self.pproc = subprocess.Popen(['puredata','-nogui','-midiindev',self.midiin,'-midioutdev',self.midiout,'-open',presets[selection]],stderr=err,shell=False)
+					cmd = 'puredata -nogui {} {} -open {}'.format(self.midiin, self.midiout, presets[selection])
+					self.pproc = subprocess.Popen(shlex.split(cmd),stderr=err,shell=False)
 					self.last = presets[selection]
 			diamsg = 'dialog --title {} --exit-label "ok" --no-shadow --tailbox pdout.log 12 24'.format(presets[selection])
-			subprocess.run(diamsg, shell = True )
+			subprocess.run(shlex.split(diamsg), shell = False )
 		os.remove("plist")
 		self.main_menu()
 
@@ -82,7 +86,7 @@ class proc_mgr(object):
 		cmd = r'''df -h | grep /dev/root | awk '{printf "Disk: %s/%s\n",$3,$2}' >> info.txt'''
 		subprocess.run(cmd, shell=True)
 		diamsg = 'dialog --title " Info" --exit-label "ok" --no-shadow --textbox info.txt 12 24'
-		subprocess.run(diamsg, shell = True )
+		subprocess.run(shlex.split(diamsg), shell = False )
 		os.remove("info.txt")
 		self.main_menu()
 
@@ -98,20 +102,20 @@ class proc_mgr(object):
 
 	def turn_off(self):
 		diamsg = 'dialog --title "Shutdown" --ok-label yes --help-button --help-label esc --no-shadow --msgbox "Are you sure?" 12 24'
-		selection = subprocess.call(diamsg, shell = True )
+		selection = subprocess.call(shlex.split(diamsg), shell = False )
 		if selection == 0:
 			self.exit_out()
 			diamsg = 'dialog --title "Message" --no-shadow --infobox "Unplug the pi after the green LED goes out" 12 24'
-			subprocess.run(diamsg, shell = True )
+			subprocess.run(shlex.split(diamsg), shell = False )
 			time.sleep( 3 )
 			cmd = "halt"
-			subprocess.run(cmd, shell = True )			
+			subprocess.run(shlex.split(cmd), shell = False )			
 		else:
 			self.main_menu()
 	
 	def block_cursor(self):
 		cmd = 'echo -ne "\x1b[?25h"' # turn cursor on
-		subprocess.run(cmd, shell = True)
+		subprocess.run(shlex.split(cmd), shell = False)
 				
 
 def main():
