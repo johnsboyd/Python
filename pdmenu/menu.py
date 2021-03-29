@@ -75,16 +75,15 @@ class proc_mgr(object):
 		self.main_menu()
 
 	def show_info(self):
-		cmd = 'hostname -I | awk \'{print "IP:",$1}\' > info.txt'
-		subprocess.run(cmd, shell=True)
-		cmd = 'echo -n "Load: " >> info.txt'
-		subprocess.run(cmd, shell=True)
-		cmd = 'uptime | egrep -o [0-9]+[.]+[0-9]+[,]+[\' \']+[0-9]+[.]+[0-9]+[,]+[\' \']+[0-9]+[.]+[0-9]+ | tr -d \',\' >> info.txt'
-		subprocess.run(cmd, shell=True)
-		cmd = r'''free -m | grep Mem: | awk '{printf "Mem: %s/%s MB\n",$3,$2}' >> info.txt'''
-		subprocess.run(cmd, shell=True)
-		cmd = r'''df -h | grep /dev/root | awk '{printf "Disk: %s/%s\n",$3,$2}' >> info.txt'''
-		subprocess.run(cmd, shell=True)
+		with open('info.txt', 'w') as filehandle:
+			ipaddress = subprocess.check_output(['hostname', '-I']).decode('utf-8').split(" ")[0]
+			load = subprocess.check_output(['uptime']).decode('utf-8').split(":")[-1].replace(',', '').rstrip()
+			free = subprocess.check_output(['free','-m']).decode('utf-8').split(":")[1].split()
+			dfree = subprocess.check_output(['df','-h']).decode('utf-8').split("/")[2].split()
+			filehandle.write('IP: {}\n'.format(ipaddress))
+			filehandle.write('Load:{}\n'.format(load))
+			filehandle.write('Mem: {}/{}\n'.format(free[1],free[0]))
+			filehandle.write('Disk: {}/{}'.format(dfree[2],dfree[1]))
 		diamsg = 'dialog --title " Info" --exit-label "ok" --no-shadow --textbox info.txt 12 24'
 		subprocess.run(shlex.split(diamsg), shell = False )
 		os.remove("info.txt")
