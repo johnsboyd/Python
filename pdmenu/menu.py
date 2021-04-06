@@ -36,7 +36,7 @@ class proc_mgr(object):
 
 
 	def main_menu(self):
-		diamsg = 'dialog --nook --no-cancel --stdout --no-shadow --menu "select function:" 12 24 4 0 Load 1 Info 2 Halt 3 Exit'
+		diamsg = 'dialog --no-ok --no-cancel --stdout --no-shadow --menu "select function:" 12 24 4 0 Load 1 Info 2 Halt 3 Exit'
 		selection = subprocess.check_output(shlex.split(diamsg), shell = False ).decode("utf-8")
 		if selection == '0':
 			self.load_prog()
@@ -54,7 +54,7 @@ class proc_mgr(object):
 		with open('plist', 'w') as filehandle:
 			for idx in range(len(presets)):
 				filehandle.write('{} {}\n'.format(idx,presets[idx]))
-		diamsg = 'dialog --nook --cancel-label "esc" --stdout --no-shadow --menu "select program:" 12 24 {} --file plist'.format(idx)
+		diamsg = 'dialog --no-ok --cancel-label "esc" --stdout --no-shadow --menu "select program:" 12 24 {} --file plist'.format(idx)
 		try:
 			selection = int(subprocess.check_output(shlex.split(diamsg), shell = False ).decode("utf-8"))
 		except subprocess.CalledProcessError as e:
