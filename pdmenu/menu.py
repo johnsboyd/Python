@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from dialog import Dialog
 import os
 import shlex
 import subprocess
@@ -12,10 +13,12 @@ class proc_mgr(object):
 		self.midiin = ''
 		self.midiout = ''
 		self.last = None
+		self.d = Dialog(dialog="dialog")
 
 	def setup(self):
-		cmd = 'echo -ne "\x1b[?25l"' # turn cursor off
-		subprocess.run(shlex.split(cmd), shell = False)
+		#cmd = 'echo -ne "\x1b[?25l"' # turn cursor off
+		#subprocess.run(shlex.split(cmd), shell = False)
+		os.system('setterm -cursor off')
 		mididev = sorted([i for i in os.listdir('/dev/snd/') if i.startswith('midi')])
 		# symlink all midi devices
 		no=1
@@ -34,59 +37,53 @@ class proc_mgr(object):
 			self.midiin = ''
 			self.midiout = ''
 
+	def splash(self):
+		buttons = 'Up                Ok\n\n\n\n      Synthapi\n\n\n\n\nDown             Esc'
+		self.d.infobox(buttons, height=12, width=24, no_shadow=True, no_collapse=True )
+		time.sleep( 2 )
 
 	def main_menu(self):
-		diamsg = 'dialog --no-ok --no-cancel --stdout --no-shadow --menu "select function:" 12 24 4 0 Load 1 Info 2 Halt 3 Exit'
-		selection = subprocess.check_output(shlex.split(diamsg), shell = False ).decode("utf-8")
-		if selection == '0':
-			self.load_prog()
-		elif selection == '1':
-			self.show_info()
-		elif selection == '2':
-			self.turn_off()
-		elif selection == '3':
-			self.exit_out()
-		else:
-			self.exit_out()
+		code, selection = self.d.menu("select function:", height = 12, width = 24,
+			choices=[('0','Load'), ('1','Info'), ('2','Halt'), ('3','Exit')],
+			no_ok=True, no_cancel=True, no_shadow=True)
+		if code == self.d.OK:
+			if selection == '0':
+				self.load_prog()
+			elif selection == '1':
+				self.show_info()
+			elif selection == '2':
+				self.turn_off()
+			elif selection == '3':
+				self.exit_out()
+			else:
+				self.exit_out()
 
 	def load_prog(self):
-		presets = sorted([i for i in os.listdir('./') if i.endswith('.pd')])
-		with open('plist', 'w') as filehandle:
-			for idx in range(len(presets)):
-				filehandle.write('{} {}\n'.format(idx,presets[idx]))
-		diamsg = 'dialog --no-ok --cancel-label "esc" --stdout --no-shadow --menu "select program:" 12 24 {} --file plist'.format(idx)
-		try:
-			selection = int(subprocess.check_output(shlex.split(diamsg), shell = False ).decode("utf-8"))
-		except subprocess.CalledProcessError as e:
-			selection = -1 # escape chosen
-		if selection >= 0:
-			if presets[selection] != self.last:
+		preset = []
+		[ preset.append((str(len(preset)),i)) for i in os.listdir('./') if i.endswith('.pd') ]
+		code, select = self.d.menu("select program:", height = 12, width = 24,
+        	choices=preset, no_ok=True, no_cancel=False, no_shadow=True)
+		if code == self.d.OK:
+			selection=int(select)
+			if preset[selection][1] != self.last:
 				if self.pproc:
 					self.pproc.terminate()
 					self.pproc.wait()
 					self.pproc = None
 				with open("pdout.log","wb") as err:
-					cmd = 'puredata -nogui {} {} -open {}'.format(self.midiin, self.midiout, presets[selection])
+					cmd = 'puredata -nogui {} {} -open {}'.format(self.midiin, self.midiout, preset[selection][1])
 					self.pproc = subprocess.Popen(shlex.split(cmd),stderr=err,shell=False)
-					self.last = presets[selection]
-			diamsg = 'dialog --title {} --exit-label "ok" --no-shadow --tailbox pdout.log 12 24'.format(presets[selection])
-			subprocess.run(shlex.split(diamsg), shell = False )
-		os.remove("plist")
+					self.last = preset[selection][1]
+			self.d.tailbox("pdout.log", height=12, width=24, title=preset[selection][1], exit_label="ok", no_cancel=True, no_shadow=True)
 		self.main_menu()
 
 	def show_info(self):
-		with open('info.txt', 'w') as filehandle:
-			ipaddress = subprocess.check_output(['hostname', '-I']).decode('utf-8').split(" ")[0]
-			load = subprocess.check_output(['uptime']).decode('utf-8').split(":")[-1].replace(',', '').rstrip()
-			free = subprocess.check_output(['free','-m']).decode('utf-8').split(":")[1].split()
-			dfree = subprocess.check_output(['df','-h']).decode('utf-8').split("/")[2].split()
-			filehandle.write('IP: {}\n'.format(ipaddress))
-			filehandle.write('Load:{}\n'.format(load))
-			filehandle.write('Mem: {}/{}\n'.format(free[1],free[0]))
-			filehandle.write('Disk: {}/{}'.format(dfree[2],dfree[1]))
-		diamsg = 'dialog --title " Info" --exit-label "ok" --no-shadow --textbox info.txt 12 24'
-		subprocess.run(shlex.split(diamsg), shell = False )
-		os.remove("info.txt")
+		ipaddress = subprocess.check_output(['hostname', '-I']).decode('utf-8').split(" ")[0]
+		load = subprocess.check_output(['uptime']).decode('utf-8').split(":")[-1].replace(',', '').rstrip()
+		free = subprocess.check_output(['free','-m']).decode('utf-8').split(":")[1].split()
+		dfree = subprocess.check_output(['df','-h']).decode('utf-8').split("/")[2].split()
+		info_text = 'IP: {}\nLoad:{}\nMem: {}/{}\nDisk: {}/{}'.format(ipaddress,load,free[1],free[0],dfree[2],dfree[1])
+		self.d.msgbox(info_text, height=12, width=24, exit_label="ok", no_cancel=True, no_shadow=True)
 		self.main_menu()
 
 	def exit_out(self):
@@ -96,16 +93,15 @@ class proc_mgr(object):
 			self.pproc = None
 		if os.path.exists("pdout.log"):
 			os.remove("pdout.log")
-		if os.path.exists("plist"):
-			os.remove("plist")
 
 	def turn_off(self):
-		diamsg = 'dialog --title "Shutdown" --ok-label yes --help-button --help-label esc --no-shadow --msgbox "Are you sure?" 12 24'
-		selection = subprocess.call(shlex.split(diamsg), shell = False )
-		if selection == 0:
+		#diamsg = 'dialog --title "Shutdown" --ok-label yes --help-button --help-label esc --no-shadow --msgbox "Are you sure?" 12 24'
+		#selection = subprocess.call(shlex.split(diamsg), shell = False )
+		selection = self.d.msgbox("Are you sure?", height=12, width=24, ok_label="ok", help_button=True, help_label="esc", no_shadow=True, title=
+"Shutdown")
+		if selection == "ok":
 			self.exit_out()
-			diamsg = 'dialog --title "Message" --no-shadow --infobox "Unplug the pi after the green LED goes out" 12 24'
-			subprocess.run(shlex.split(diamsg), shell = False )
+			self.d.infobox("Unplug the pi after the green LED goes out", height=12, width=24, title="Message", no_shadow=True )
 			time.sleep( 3 )
 			cmd = "halt"
 			subprocess.run(shlex.split(cmd), shell = False )			
@@ -113,13 +109,15 @@ class proc_mgr(object):
 			self.main_menu()
 	
 	def block_cursor(self):
-		cmd = 'echo -ne "\x1b[?25h"' # turn cursor on
-		subprocess.run(shlex.split(cmd), shell = False)
+		os.system('setterm -cursor on')
+		#cmd = 'echo -ne "\x1b[?25h"' # turn cursor on
+		#subprocess.run(shlex.split(cmd), shell = False)
 				
 
 def main():
 	pm = proc_mgr()
 	pm.setup()
+	pm.splash()
 	pm.main_menu()
 	pm.block_cursor()
 	exit
