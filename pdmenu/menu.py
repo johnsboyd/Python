@@ -16,8 +16,6 @@ class proc_mgr(object):
 		self.d = Dialog(dialog="dialog")
 
 	def setup(self):
-		#cmd = 'echo -ne "\x1b[?25l"' # turn cursor off
-		#subprocess.run(shlex.split(cmd), shell = False)
 		os.system('setterm -cursor off')
 		mididev = sorted([i for i in os.listdir('/dev/snd/') if i.startswith('midi')])
 		# symlink all midi devices
@@ -110,9 +108,6 @@ class proc_mgr(object):
 	
 	def block_cursor(self):
 		os.system('setterm -cursor on')
-		#cmd = 'echo -ne "\x1b[?25h"' # turn cursor on
-		#subprocess.run(shlex.split(cmd), shell = False)
-				
 
 def main():
 	pm = proc_mgr()
