@@ -115,7 +115,7 @@ def main():
 	pm.splash()
 	pm.main_menu()
 	pm.block_cursor()
-	exit
+	sys.exit()
 
 if __name__ == '__main__':
     main()
