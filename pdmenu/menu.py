@@ -36,7 +36,7 @@ class proc_mgr(object):
 			self.midiout = ''
 
 	def splash(self):
-		buttons = 'Up                Ok\n\n\n\n      Synthapi\n\n\n\n\nDown             Esc'
+		buttons = 'Up                Ok\n\n\n\n      Synpathi\n\n\n\n\nDown             Esc'
 		self.d.infobox(buttons, height=12, width=24, no_shadow=True, no_collapse=True )
 		time.sleep( 2 )
 
@@ -115,7 +115,7 @@ def main():
 	pm.splash()
 	pm.main_menu()
 	pm.block_cursor()
-	exit
+	sys.exit()
 
 if __name__ == '__main__':
     main()
