@@ -1,0 +1,139 @@
+#N canvas 388 320 989 616 10;
+#X floatatom 120 440 5 0 0 0 - - -;
+#X obj 273 376 random 128;
+#X floatatom 226 453 5 0 0 0 - - -;
+#X obj 132 29 vsl 30 128 0 100 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 0 1;
+#X obj 130 189 int;
+#X obj 124 379 spigot;
+#X floatatom 130 214 5 0 0 0 - - -;
+#X obj 180 179 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X obj 180 201 random 100;
+#X msg 150 296 1;
+#X msg 219 296 0;
+#X obj 165 264 moses;
+#X msg 118 296 0;
+#X msg 186 296 1;
+#X obj 226 376 spigot;
+#X obj 227 409 +;
+#X obj 227 431 % 128;
+#X obj 244 477 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X obj 122 473 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X obj 272 350 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X obj 229 530 makenote 0 50;
+#X obj 450 20 vsl 30 128 0 100 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 0 1;
+#X floatatom 448 421 5 0 0 0 - - -;
+#X obj 453 198 int;
+#X floatatom 453 227 5 0 0 0 - - -;
+#X obj 441 329 random 100;
+#X obj 448 361 moses;
+#X obj 441 307 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X msg 436 390 0;
+#X msg 476 390 1;
+#X obj 367 457 spigot;
+#X text 127 10 %notes;
+#X text 441 5 %silence;
+#X obj 599 285 table pitches;
+#X msg 574 364 \; pitches resize 128;
+#X msg 528 528 \; pitches bounds 0 127 127 0;
+#X obj 228 500 tabread pitches;
+#X obj 528 285 loadbang;
+#X obj 528 307 t b b b;
+#X msg 551 405 \; pitches 0 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+89 90 91 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39
+40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62
+63 64 65 66 67 68 69 70 92 93 73 74 75 76 77 89 94 80 81 82 83 84 85
+86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106
+107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123
+124 125 126 127;
+#X obj 351 291 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X obj 356 349 +;
+#X obj 34 40 ctlin 4 17;
+#X obj 344 39 ctlin 5 17;
+#X obj 251 232 +;
+#X obj 262 27 vsl 30 128 0 127 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 0 1;
+#X text 253 8 offset;
+#X obj 259 167 int;
+#X obj 181 39 ctlin 6 17;
+#X obj 123 406 % 128;
+#X floatatom 366 490 5 0 0 0 - - -;
+#X obj 306 319 random 20;
+#X msg 174 128 seed 0.1244;
+#X obj 660 26 notein 25;
+#X obj 666 88 noteout 1;
+#X obj 15 270 print random;
+#X obj 285 206 print offset;
+#X obj 537 233 print silence;
+#X obj 229 560 noteout 26;
+#X obj 328 127 notein 10;
+#X connect 0 0 18 0;
+#X connect 0 0 36 0;
+#X connect 1 0 15 1;
+#X connect 2 0 17 0;
+#X connect 2 0 36 0;
+#X connect 3 0 4 0;
+#X connect 4 0 6 0;
+#X connect 5 0 49 0;
+#X connect 6 0 11 1;
+#X connect 6 0 55 0;
+#X connect 7 0 8 0;
+#X connect 8 0 11 0;
+#X connect 9 0 14 1;
+#X connect 10 0 14 1;
+#X connect 11 0 12 0;
+#X connect 11 0 9 0;
+#X connect 11 1 13 0;
+#X connect 11 1 10 0;
+#X connect 12 0 5 1;
+#X connect 13 0 5 1;
+#X connect 14 0 15 0;
+#X connect 15 0 16 0;
+#X connect 16 0 2 0;
+#X connect 19 0 1 0;
+#X connect 20 0 58 0;
+#X connect 20 1 58 1;
+#X connect 21 0 23 0;
+#X connect 22 0 30 1;
+#X connect 23 0 24 0;
+#X connect 23 0 57 0;
+#X connect 24 0 26 1;
+#X connect 25 0 26 0;
+#X connect 26 0 28 0;
+#X connect 26 1 29 0;
+#X connect 27 0 25 0;
+#X connect 28 0 22 0;
+#X connect 29 0 22 0;
+#X connect 30 0 50 0;
+#X connect 36 0 20 0;
+#X connect 37 0 38 0;
+#X connect 38 0 35 0;
+#X connect 38 1 39 0;
+#X connect 38 2 34 0;
+#X connect 40 0 51 0;
+#X connect 41 0 30 0;
+#X connect 42 0 3 0;
+#X connect 43 0 21 0;
+#X connect 44 0 5 0;
+#X connect 45 0 47 0;
+#X connect 47 0 44 1;
+#X connect 47 0 56 0;
+#X connect 48 0 45 0;
+#X connect 49 0 0 0;
+#X connect 50 0 20 1;
+#X connect 51 0 41 0;
+#X connect 52 0 8 0;
+#X connect 59 0 44 0;
+#X connect 59 0 14 0;
+#X connect 59 1 27 0;
+#X connect 59 1 19 0;
+#X connect 59 1 7 0;
+#X connect 59 1 40 0;
+#X connect 59 1 41 1;
