@@ -93,8 +93,6 @@ class proc_mgr(object):
 			os.remove("pdout.log")
 
 	def turn_off(self):
-		#diamsg = 'dialog --title "Shutdown" --ok-label yes --help-button --help-label esc --no-shadow --msgbox "Are you sure?" 12 24'
-		#selection = subprocess.call(shlex.split(diamsg), shell = False )
 		selection = self.d.msgbox("You can halt, reboot or esc", height=12, width=24, ok_label="halt", help_button=True, help_label="reboot", no_shadow=True, title=
 "Shutdown")
 		if selection == "ok":
@@ -105,8 +103,8 @@ class proc_mgr(object):
 			subprocess.run(shlex.split(cmd), shell = False )			
 		elif selection == "help":
 			self.exit_out()
-			self.d.infobox("Rebooting", height=12, width=24, title="Message", no_shadow=True )
-			time.sleep( 1 )
+			self.d.infobox("Rebooting...", height=12, width=24, title="Message", no_shadow=True )
+			time.sleep( 2 )
 			cmd = "reboot"
 			subprocess.run(shlex.split(cmd), shell = False )			
 		else:
