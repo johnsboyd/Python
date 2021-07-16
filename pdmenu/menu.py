@@ -93,7 +93,7 @@ class proc_mgr(object):
 			os.remove("pdout.log")
 
 	def turn_off(self):
-		selection = self.d.msgbox("You can halt, reboot or esc", height=12, width=24, ok_label="halt", help_button=True, help_label="reboot", no_shadow=True, title=
+		selection = self.d.msgbox("You can halt, reboot or esc", height=12, width=24, ok_label="halt", help_button=True, help_label=" reboot ", no_shadow=True, title=
 "Shutdown")
 		if selection == "ok":
 			self.exit_out()
